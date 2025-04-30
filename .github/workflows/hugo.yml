@@ -1,0 +1,74 @@
+# Sample workflow for building and deploying a Hugo site to GitHub Pages
+name: Deploy Hugo site to server
+
+on:
+  # Runs on pushes targeting the default branch
+  push:
+    branches: ["main"]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# Default to bash
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  # Build job
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    env:
+      HUGO_VERSION: 0.147.0
+    steps:
+      - name: Install Hugo CLI
+        run: |
+          wget -O ${{ runner.temp }}/hugo.deb https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb \
+          && sudo dpkg -i ${{ runner.temp }}/hugo.deb
+      - name: Install Dart Sass
+        run: sudo snap install dart-sass
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install Node.js dependencies
+        run: "[[ -f package-lock.json || -f npm-shrinkwrap.json ]] && npm ci || true"
+      - name: Build with Hugo
+        env:
+          HUGO_CACHEDIR: ${{ runner.temp }}/hugo_cache
+          HUGO_ENVIRONMENT: production
+        run: |
+          hugo \
+            --minify 
+      - name: Deploy
+        # You may pin to the exact commit or the version.
+        # uses: easingthemes/ssh-deploy@ece05a22752e524363164bfb2f69a5ba4f8ded0d
+        uses: easingthemes/ssh-deploy@v5.1.0
+        with:
+          # Private key part of an SSH key pair
+          SSH_PRIVATE_KEY: ${{secrets.DEPLOY_KEY}}
+          # Remote host
+          REMOTE_HOST: ${{vars.DEPLOY_HOST}}
+          # Remote user
+          REMOTE_USER: ${{vars.DEPLOY_USER}}
+          # Remote port
+          # REMOTE_PORT: # optional, default is 22
+          # Source directory, path relative to `$GITHUB_WORKSPACE` root, eg: `dist/`
+          SOURCE: ./public
+          # Target directory
+          TARGET: ${{vars.DEPLOY_DEST}}
+          # Arguments to pass to rsync
+          # ARGS: # optional, default is -rlgoDzvc -i
+          # An array of ssh arguments, they must be prefixed with -o and separated by a comma, for example: -o SomeArgument=no, -o SomeOtherArgument=5 
+          # SSH_CMD_ARGS: # optional, default is -o StrictHostKeyChecking=no
+          # paths to exclude separated by `,`, ie: `/dist/, /node_modules/`
+          # EXCLUDE: # optional, default is 
+          # Script to run on host machine before rsync
+          # SCRIPT_BEFORE: # optional, default is 
+          # If not an empty string, the action will fail if the before script fails. Note: The string 'false' will be treated as true
+          # SCRIPT_BEFORE_REQUIRED: # optional, default is 
+          # Script to run on host machine after rsync
+          # SCRIPT_AFTER: # optional, default is 
+          # If not an empty string, the action will fail if the after script fails. Note: The string 'false' will be treated as true
+        # SCRIPT_AFTER_REQUIRED: # optional, default is 
+          
