@@ -9,7 +9,7 @@ header_use_video: false
 header_logo: "images/chef-hat.png"
 #
 # Headers are safeHTML, you can use HTML tags such as b,i,u,br
-header_headline: "Karen Kleinbauerů"
+header_headline: "Karen"
 header_subheadline: "<b>Fullstack</b> Developer & <b>Software</b> Consultant"
 
 # Add a 'Go back to top' item to the navigation menu
